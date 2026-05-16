@@ -1,0 +1,8 @@
+Django>=5.1
+psycopg[binary]
+dj-database-url
+python-dotenv
+requests
+sumy
+nltk
+numpy
