@@ -10,8 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     }).setView([20, 0], 2);
 
-    // Add Dark Matter Tile Layer (matches dark UI)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    // Add zoom control to bottom-right
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // Stamen Toner — pure black & white tile layer (matches VV aesthetic)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
         subdomains: 'abcd',
         maxZoom: 19
     }).addTo(map);
@@ -32,14 +35,14 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => console.error("Error loading GeoJSON:", error));
 
-    // 3. Map Styling and Interaction Methods
+    // 3. Map Styling — stark black/white, Visualize Value style
     function getCountryStyle(feature) {
         return {
-            fillColor: '#1a1d29', // Dark card bg
-            weight: 1,
+            fillColor: '#0a0a0a',
+            weight: 0.5,
             opacity: 1,
-            color: 'rgba(255, 255, 255, 0.1)', // Subtle border
-            fillOpacity: 0.7
+            color: 'rgba(255, 255, 255, 0.08)',
+            fillOpacity: 0.9
         };
     }
 
@@ -47,9 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const layer = e.target;
         if (layer !== selectedLayer) {
             layer.setStyle({
-                fillColor: '#2d3348',
-                fillOpacity: 0.9,
-                color: 'rgba(255, 255, 255, 0.3)'
+                fillColor: '#1a1a1a',
+                fillOpacity: 1,
+                color: 'rgba(255, 255, 255, 0.2)',
+                weight: 1
             });
         }
     }
@@ -64,17 +68,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function selectCountry(e) {
         const layer = e.target;
         const feature = layer.feature;
-        const isoCode = feature.properties.iso_a2; // 'US', 'IN', etc.
+        const isoCode = feature.properties.iso_a2;
         const countryName = feature.properties.name;
 
-        // Visual selection on map
+        // Visual selection on map — white outline, subtle fill
         if (selectedLayer) geojsonLayer.resetStyle(selectedLayer);
         selectedLayer = layer;
         layer.setStyle({
-            fillColor: '#f472b6', // Accent Pink
-            fillOpacity: 0.8,
-            color: '#fff',
-            weight: 2
+            fillColor: '#ffffff',
+            fillOpacity: 0.15,
+            color: '#ffffff',
+            weight: 1.5
         });
         
         // Ensure the layer is brought to front visually
@@ -103,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
         emptyState.classList.add('hidden');
         dataState.classList.add('hidden');
         loadingState.classList.remove('hidden');
-        loadingState.classList.add('flex');
 
         // Note: iso_a2 might be '-99' for some missing regions in the dataset
         if (!isoCode || isoCode === '-99') {
@@ -128,13 +131,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function updatePanelUI(data, fallbackName) {
         // Hide loading, show data
         loadingState.classList.add('hidden');
-        loadingState.classList.remove('flex');
         dataState.classList.remove('hidden');
-        dataState.classList.add('flex');
 
         // Update Header
         document.getElementById('panel-country-name').textContent = data.country_name || fallbackName;
-        document.getElementById('panel-last-updated').textContent = data.last_fetched || 'Just now';
+        document.getElementById('panel-last-updated').textContent = data.last_fetched || 'just now';
         
         // Quick emoji flag hack based on ISO code
         let flag = "🇺🇳";
@@ -172,18 +173,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.appendChild(clone);
             });
         } else {
-            container.innerHTML = `<p class="text-xs text-gray-500 italic p-4">No recent news found for this region.</p>`;
+            container.innerHTML = `<p style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; padding: 1rem 0;">no recent news found for this region.</p>`;
         }
     }
 
     function showErrorUI(countryName, message) {
         loadingState.classList.add('hidden');
-        loadingState.classList.remove('flex');
         dataState.classList.remove('hidden');
-        dataState.classList.add('flex');
 
         document.getElementById('panel-country-name').textContent = countryName;
-        document.getElementById('panel-last-updated').textContent = 'N/A';
+        document.getElementById('panel-last-updated').textContent = 'n/a';
         document.getElementById('panel-flag').textContent = '⚠️';
         document.getElementById('panel-summary').textContent = message;
         document.getElementById('news-container').innerHTML = '';
